@@ -2,6 +2,14 @@ PHP-MySQL-Assignment
 ====================
 In this assignment you will make a simple interface to work with a database.
 
+Directory Structure
+-------------------
+You should have the following directory structure:
+
+  - assignment4-part2
+    - src //Your files go in here
+    - log.txt //Work log file
+
 Database Requirements
 ---------------------
 The database will be a single table database that tracks a video store's inventory of videos. It will have the following attributes:
