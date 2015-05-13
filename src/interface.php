@@ -14,15 +14,41 @@ include 'storedinfo.php';
 //	echo("connected");
 //}
 
-
-//local db
+////local db
 $mysqli = new mysqli("localhost","root",$localpass,"blockbuster","3306");
 if(!$mysqli || $mysqli->connect_errno) {
 	echo "Unable to connect to database.  Error: " . $mysqli->connect_errno . " " . $mysqli->connect_error;
-} else {
-	echo("connected");
+}
+?>
+<h1>Video Inventory</h1>
+<h5>Use the form below to add a video to the database.</h5>
+<form action="interface.php" method="post">
+	<label>Name: </label>
+	<input type="text" name="name">
+	<label>Category: </label>
+	<input type="text" name="category">
+	<label>Length: </label>
+	<input type="text" name="length">
+	<input type="submit">
+</form><br>
+<?php
+//check for post parameters
+$newName = "";
+$newCategory = "";
+$newLength = "";
+
+if (isset($_POST['name'])) {
+	$newName = $_POST['name'];
+}
+if (isset($_POST['category'])) {
+	$newCategory = $_POST['category'];
+}
+if (isset($_POST['length'])) {
+	$newLength = $_POST['length'];
 }
 
+
+	
 //general statement for getting all videos in db
 if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
 	echo "Prepare failed on getVids";	
@@ -31,7 +57,7 @@ if (!$getVids->execute()) {
 	echo "Execute failed on getVids";
 }
 $vidResult = $getVids->get_result();
-?>
+//render video table ?>
 <table border="1px">
 	<thead>
 		<tr>
