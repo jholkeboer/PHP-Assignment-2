@@ -35,9 +35,7 @@ $vidResult = $getVids->get_result();
 <table>
 <?php
 while($row = $vidResult->fetch_assoc()) {
-	foreach($row as $r) {
-		echo $row['name'];
-	}
+	printf("%s %s %s %s %s<br>", $row["id"], $row["name"], $row["category"], $row["length"], $row["rented"]);
 }
 ?>
 </table>
