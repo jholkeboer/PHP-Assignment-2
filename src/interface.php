@@ -32,12 +32,22 @@ if (!$getVids->execute()) {
 }
 $vidResult = $getVids->get_result();
 ?>
-<table>
+<table border="1px">
+	<thead>
+		<tr>
+			<td>Name</td>
+			<td>Category</td>
+			<td>Length</td>
+			<td>Checked Out?</td>
+		</tr>
+	</thead>
+	<tbody>
 <?php
 while($row = $vidResult->fetch_assoc()) {
-	printf("%s %s %s %s %s<br>", $row["id"], $row["name"], $row["category"], $row["length"], $row["rented"]);
+	printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td></tr>", $row["name"], $row["category"], $row["length"], $row["rented"]);
 }
 ?>
+	</tbody>
 </table>
 <?php
 
