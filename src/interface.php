@@ -33,22 +33,37 @@ if(!$mysqli || $mysqli->connect_errno) {
 </form><br>
 <?php
 //check for post parameters
-$newName = "";
-$newCategory = "";
-$newLength = "";
-
-if (isset($_POST['name'])) {
-	$newName = $_POST['name'];
-}
-if (isset($_POST['category'])) {
-	$newCategory = $_POST['category'];
-}
-if (isset($_POST['length'])) {
-	$newLength = $_POST['length'];
-}
-
-
+if ($_POST) {
+	$newName = "";
+	$newCategory = "";
+	$newLength = "";
 	
+	if (isset($_POST['name'])) {
+		$newName = $_POST['name'];
+	}
+	if (isset($_POST['category'])) {
+		$newCategory = $_POST['category'];
+	}
+	if (isset($_POST['length'])) {
+		$newLength = intval($_POST['length']);
+	}
+	
+	//perform insert based on post
+		//prepare insert statement
+	if (!($addVid = $mysqli->prepare("INSERT INTO vidstore (name, category, length) values (?,?,?)"))) {
+		echo "Prepare failed on addVid";
+	}
+		//bind parameters
+	if (!$addVid->bind_param("ssi", $newName, $newCategory, $newLength)) {
+		echo "Binding failed on addVid";
+	}
+		//execute
+	$addVid->execute();
+	$addVid->close();
+	
+	//redirect
+	header("Location: " . $_SERVER['REQUEST_URI']);
+}
 //general statement for getting all videos in db
 if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
 	echo "Prepare failed on getVids";	
