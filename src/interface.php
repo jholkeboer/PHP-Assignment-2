@@ -4,38 +4,39 @@
 <body>
 <?php
 include 'storedinfo.php';
-
+header( 'Cache-Control: no-store, no-cache, must-revalidate' ); 
+header( 'Cache-Control: post-check=0, pre-check=0', false ); 
+header( 'Pragma: no-cache' ); 
 //oregon state db
 
-//$mysqli = new mysqli("oniddb.cws.oregonstate.edu","holkeboj-db",$holkebojpass,"holkeboj-db");
+$mysqli = new mysqli("oniddb.cws.oregonstate.edu","holkeboj-db",$holkebojpass,"holkeboj-db");
+if(!$mysqli || $mysqli->connect_errno) {
+	echo "Unable to connect to database.  Error: " . $mysqli->connect_errno . " " . $mysqli->connect_error;
+}
+
+////local db
+//$mysqli = new mysqli("localhost","root",$localpass,"blockbuster","3306");
 //if(!$mysqli || $mysqli->connect_errno) {
 //	echo "Unable to connect to database.  Error: " . $mysqli->connect_errno . " " . $mysqli->connect_error;
 //}
 
-////local db
-$mysqli = new mysqli("localhost","root",$localpass,"blockbuster","3306");
-if(!$mysqli || $mysqli->connect_errno) {
-	echo "Unable to connect to database.  Error: " . $mysqli->connect_errno . " " . $mysqli->connect_error;
+//get list of categories
+	//prepare category query
+if (!($catList = $mysqli->prepare("SELECT DISTINCT(category) FROM vidstore"))) {
+	echo "Prepare failed on catList";
 }
+	//execute category query
+if (!($catList->execute())) {
+	echo "Execute failed on catList";
+}
+$catResult = $catList->get_result();		//this will be used to populate drop-down
+
 ?>
-<h1>Video Inventory</h1>
-<h5>Use the form below to add a video to the database.</h5>
-<form action="interface.php" method="post">
-	<label>Name: </label>
-	<input type="text" name="name">
-	<label>Category: </label>
-	<input type="text" name="category">
-	<label>Length: </label>
-	<input type="text" name="length">
-	<input type="submit">
-</form><br>
-<form action="interface.php" method="post">
-	<input type="hidden" name="deleteAll" value="1">
-	<input type="submit" value="Delete All Videos">
-</form><br>
+
 <?php
+
 if ($_POST) {
-//check for post parameters	
+//check for post parameters
 	if (isset($_POST['name'])) {
 		$newName = $_POST['name'];
 	}
@@ -56,7 +57,18 @@ if ($_POST) {
 	}	
 	if (isset($_POST['idToReturn'])) {
 		$idToReturn = intval($_POST['idToReturn']);
-	}	
+	}
+	if (isset($_POST['CategoryFilter'])) {
+		$CategoryFilter = (string)$_POST['CategoryFilter'];
+		echo "Filter set";
+	}
+	else {
+		$CategoryFilter = "";
+	}
+
+	if (isset($newName)) {
+		echo "newname set";
+	}
 	//perform insert based on post
 	if (isset($newName) && isset($newCategory) && isset($newLength)) {	
 			//prepare insert statement	
@@ -100,6 +112,8 @@ if ($_POST) {
 				echo "Execute failed for resetTable";
 			}
 		}
+		$clearTable->close();
+		$resetTable->close();
 	}
 	
 	if (isset($idToDelete)) {
@@ -115,6 +129,7 @@ if ($_POST) {
 		if (!($delVid->execute())) {
 			echo "Execute failed on delVid";
 		}
+		$delVid->close();
 	}
 	
 	if (isset($idToRent)) {
@@ -130,6 +145,7 @@ if ($_POST) {
 		if(!($rentVid->execute())) {
 			echo "Execute failed on rentVid";
 		}
+		$rentVid->close();
 	}
 	
 	if (isset($idToReturn)) {
@@ -145,23 +161,73 @@ if ($_POST) {
 		if(!($returnVid->execute())) {
 			echo "Execute failed on returnVid";
 		}
+		$returnVid->close();
 	}
 	
 	//redirect
 	header("Location: " . $_SERVER['REQUEST_URI']);
 }
+else {
+	$CategoryFilter = "";
 
-
-
-//general statement for getting all videos in db
-if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
-	echo "Prepare failed on getVids";	
 }
-if (!$getVids->execute()) {
-	echo "Execute failed on getVids";
+
+echo "Category filter is ";
+echo $CategoryFilter;
+
+if ($CategoryFilter == "") {
+	//general statement for getting all videos in db
+	if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
+		echo "Prepare failed on getVids";	
+	}
+	if (!$getVids->execute()) {
+		echo "Execute failed on getVids";
+	}
+	$vidResult = $getVids->get_result();
 }
-$vidResult = $getVids->get_result();
-//render video table ?>
+else {
+	//query to filter by category
+	if(!($getFilteredVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore WHERE category=? ORDER BY name"))) {
+		echo "Prepare failed on getFilteredVids";
+	}
+	if (!($getFilteredVids->bind_param("s",$CategoryFilter))) {
+		echo "Binding failed on getFilteredVids";
+	}
+	if (!$getFilteredVids->execute()) {
+		echo "Execute failed on getFilteredVids";
+	}
+	$vidResult = $getFilteredVids->get_result();
+}
+ ?>
+ 
+<h1>Video Inventory</h1>
+<h5>Use the form below to add a video to the database.</h5>
+<form action="interface.php" method="post">
+	<label>Name: </label>
+	<input type="text" name="name">
+	<label>Category: </label>
+	<input type="text" name="category">
+	<label>Length: </label>
+	<input type="text" name="length">
+	<input type="submit" value="Add video">	
+</form><br>
+<form action="interface.php" method="post">
+	<label>Filter: </label>
+	<select name="CategoryFilter">
+		<option value="">All Movies</option>
+		<?php
+		while($row = $catResult->fetch_assoc()) {
+			printf("<option value='".$row['category']."'>".$row['category']."</option>");
+		}	
+		?>
+	</select>
+	<input type="submit" value="Filter">
+</form><br>
+<form action="interface.php" method="post">
+	<input type="hidden" name="deleteAll" value="1">
+	<input type="submit" value="Delete All Videos">
+</form><br>
+
 <table border="1px">
 	<thead>
 		<tr>
