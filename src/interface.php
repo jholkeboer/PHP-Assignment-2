@@ -10,8 +10,6 @@ include 'storedinfo.php';
 //$mysqli = new mysqli("oniddb.cws.oregonstate.edu","holkeboj-db",$holkebojpass,"holkeboj-db");
 //if(!$mysqli || $mysqli->connect_errno) {
 //	echo "Unable to connect to database.  Error: " . $mysqli->connect_errno . " " . $mysqli->connect_error;
-//} else {
-//	echo("connected");
 //}
 
 ////local db
@@ -53,7 +51,12 @@ if ($_POST) {
 	if (isset($_POST['idToDelete'])) {
 		$idToDelete = intval($_POST['idToDelete']);
 	}
-	
+	if (isset($_POST['idToRent'])) {
+		$idToRent = intval($_POST['idToRent']);
+	}	
+	if (isset($_POST['idToReturn'])) {
+		$idToReturn = intval($_POST['idToReturn']);
+	}	
 	//perform insert based on post
 	if (isset($newName) && isset($newCategory) && isset($newLength)) {	
 			//prepare insert statement	
@@ -114,31 +117,41 @@ if ($_POST) {
 		}
 	}
 	
+	if (isset($idToRent)) {
+			//prepare update statement
+		if(!($rentVid = $mysqli->prepare("UPDATE vidstore SET rented=1 WHERE id=?"))) {
+			echo "Prepare failed on rentVid";
+		}
+			//bind id to be updated
+		if(!($rentVid->bind_param("i",$idToRent))) {
+			echo "Binding failed on rentVid";
+		}
+			//execute update
+		if(!($rentVid->execute())) {
+			echo "Execute failed on rentVid";
+		}
+	}
+	
+	if (isset($idToReturn)) {
+			//prepare update statement
+		if(!($returnVid = $mysqli->prepare("UPDATE vidstore SET rented=0 WHERE id=?"))) {
+			echo "Prepare failed on returnVid";
+		}
+			//bind id to be updated
+		if(!($returnVid->bind_param("i",$idToReturn))) {
+			echo "Binding failed on returnVid";
+		}
+			//execute update
+		if(!($returnVid->execute())) {
+			echo "Execute failed on returnVid";
+		}
+	}
+	
 	//redirect
 	header("Location: " . $_SERVER['REQUEST_URI']);
 }
 
-//check for get parameters
-//if ($_GET) {
-//	//perform deletion
-//	if (isset($_GET['idToDelete'])) {
-//		$idToDelete = intval($_GET['idToDelete']);
-//	}
-//	
-//	if (!($delVid = $mysqli->prepare("DELETE FROM vidstore WHERE id=?"))) {
-//		echo "Prepare failed on delVid";
-//	}
-//	if (!$delVid->bind_param("i", $idToDelete)) {
-//		echo "Binding failed on addVid";
-//	}
-//	if (!($delVid->execute())) {
-//		echo "Execute failed on delVid";
-//	}
-//	$delVid->close();
-//	
-//	//redirect
-//	//header("Location: " . $_SERVER['REQUEST_URI']);
-//}
+
 
 //general statement for getting all videos in db
 if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
@@ -155,21 +168,42 @@ $vidResult = $getVids->get_result();
 			<td>Name</td>
 			<td>Category</td>
 			<td>Length</td>
-			<td>Checked Out?</td>
+			<td>Status</td>
 		</tr>
 	</thead>
 	<tbody>
 <?php
 while($row = $vidResult->fetch_assoc()) {
-	printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> </tr>", 
-	$row["name"], 
-	$row["category"], 
-	$row["length"], 
-	$row["rented"], 
-	"<form action='interface.php' method='post'>
-		<input type='hidden' name='idToDelete' value='".$row['id']."'>
-		<input type='submit' value='Delete'>
-	</form>");
+	if ($row["rented"] == 0) {
+		printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> </tr>", 
+		$row["name"], 
+		$row["category"], 
+		$row["length"], 
+		"Available",
+		"<form action='interface.php' method='post'>
+			<input type='hidden' name='idToRent' value='".$row['id']."'>
+			<input type='submit' value='Rent'>
+		</form>", 
+		"<form action='interface.php' method='post'>
+			<input type='hidden' name='idToDelete' value='".$row['id']."'>
+			<input type='submit' value='Delete'>
+		</form>");
+	}
+	else if ($row["rented"] == 1) {
+		printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> </tr>", 
+		$row["name"], 
+		$row["category"], 
+		$row["length"], 
+		"Checked Out",
+		"<form action='interface.php' method='post'>
+			<input type='hidden' name='idToReturn' value='".$row['id']."'>
+			<input type='submit' value='Return'>
+		</form>", 
+		"<form action='interface.php' method='post'>
+			<input type='hidden' name='idToDelete' value='".$row['id']."'>
+			<input type='submit' value='Delete'>
+		</form>");		
+	}
 }
 ?>
 	</tbody>

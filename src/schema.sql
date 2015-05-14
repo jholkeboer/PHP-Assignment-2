@@ -4,7 +4,7 @@ create table vidstore (
 	name varchar(255) NOT NULL,
 	category varchar(255),
 	length int(11) unsigned,
-	rented bool default 1,
+	rented bool default 0,
 	PRIMARY KEY (id),
 	UNIQUE(name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
