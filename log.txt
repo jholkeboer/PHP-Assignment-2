@@ -1,0 +1,27 @@
+Start: Sun, 3 May 2015 18:54:56 -0700 
+End: Sun, 10 May 2015 22:37:05 -0700 
+Tasks: initial commit 
+
+Start: Tue, 12 May 2015 14:28:51 -0700 
+End: Tue, 12 May 2015 16:28:51 -0700 
+Tasks: schema 
+
+Start: Tue, 12 May 2015 17:00:12 -0700 
+End: Tue, 12 May 2015 19:38:12 -0700 
+Tasks: db connected 
+
+Start: Wed, 13 May 2015 10:53:44 -0700 
+End: Wed, 13 May 2015 14:00:07 -0700 
+Tasks: table displaying 
+
+Start: Wed, 13 May 2015 15:02:48 -0700 
+End: Wed, 13 May 2015 17:22:57 -0700 
+Tasks: add video working 
+
+Start: Wed, 13 May 2015 18:14:12 -0700 
+End: Wed, 13 May 2015 18:58:55 -0700 
+Tasks: changed vid delete from get to post 
+
+Start: Wed, 13 May 2015 20:36:51 -0700 
+End: Wed, 13 May 2015 23:00:09 -0700 
+Tasks: html form validation 
