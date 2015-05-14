@@ -27,15 +27,3 @@ INSERT INTO vidstore (name, category, length) VALUES
 ('The Water Diviner', 'Drama', 111),
 ('Fifty Shades of Gray', 'Drama', 125),
 ('The Longest Ride', 'Drama', 139);
-
---prepared statements below
-
---add video
-
---check in video
-
---check out video
-
---delete all videos
-
---get all movies in given category

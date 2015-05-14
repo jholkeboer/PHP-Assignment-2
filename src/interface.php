@@ -31,12 +31,13 @@ if(!$mysqli || $mysqli->connect_errno) {
 	<input type="text" name="length">
 	<input type="submit">
 </form><br>
+<form action="interface.php" method="post">
+	<input type="hidden" name="deleteAll" value="1">
+	<input type="submit" value="Delete All Videos">
+</form><br>
 <?php
 //check for post parameters
 if ($_POST) {
-	$newName = "";
-	$newCategory = "";
-	$newLength = "";
 	
 	if (isset($_POST['name'])) {
 		$newName = $_POST['name'];
@@ -47,21 +48,55 @@ if ($_POST) {
 	if (isset($_POST['length'])) {
 		$newLength = intval($_POST['length']);
 	}
+	if (isset($_POST['deleteAll'])) {
+		$deleteAll = intval($_POST['deleteAll']);
+	}
 	
 	//perform insert based on post
-		//prepare insert statement
-	if (!($addVid = $mysqli->prepare("INSERT INTO vidstore (name, category, length) values (?,?,?)"))) {
-		echo "Prepare failed on addVid";
+	if (isset($newName) && isset($newCategory) && isset($newLength)) {	
+			//prepare insert statement	
+		if (!($addVid = $mysqli->prepare("INSERT INTO vidstore (name, category, length) values (?,?,?)"))) {
+			echo "Prepare failed on addVid";
+		}
+			//bind parameters
+		if (!$addVid->bind_param("ssi", $newName, $newCategory, $newLength)) {
+			echo "Binding failed on addVid";
+		}
+			//execute
+		if (!($addVid->execute())) {
+			echo "Execute failed for addVid";
+		}
+		$addVid->close();
 	}
-		//bind parameters
-	if (!$addVid->bind_param("ssi", $newName, $newCategory, $newLength)) {
-		echo "Binding failed on addVid";
+	
+	//perform delete all if that button was clicked
+	if (isset($deleteAll)) {
+		if ($deleteAll == 1) {
+				//prepare insert statement
+			if (!($clearTable = $mysqli->prepare("drop table if exists vidstore"))) {
+				echo "Prepare failed on clearTable";
+			}
+			if (!($resetTable = $mysqli->prepare("create table vidstore (
+	id int(11) NOT NULL AUTO_INCREMENT,
+	name varchar(255) NOT NULL,
+	category varchar(255),
+	length int(11) unsigned,
+	rented bool default 1,
+	PRIMARY KEY (id),
+	UNIQUE(name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8"))) {
+				echo "Prepare failed on resetTable";
+			}
+				//execute deletion
+			if (!($clearTable->execute())) {
+				echo "Execute failed for clearTable";
+			}
+			if (!($resetTable->execute())) {
+				echo "Execute failed for resetTable";
+			}
+			
+		}
 	}
-		//execute
-	if (!($addVid->execute())) {
-		echo "Execute failed for addVid";
-	}
-	$addVid->close();
 	
 	//redirect
 	header("Location: " . $_SERVER['REQUEST_URI']);
@@ -84,6 +119,9 @@ if ($_GET) {
 		echo "Execute failed on delVid";
 	}
 	$delVid->close();
+	
+	//redirect
+	//header("Location: " . $_SERVER['REQUEST_URI']);
 }
 
 //general statement for getting all videos in db
