@@ -36,9 +36,8 @@ if(!$mysqli || $mysqli->connect_errno) {
 	<input type="submit" value="Delete All Videos">
 </form><br>
 <?php
-//check for post parameters
 if ($_POST) {
-	
+//check for post parameters	
 	if (isset($_POST['name'])) {
 		$newName = $_POST['name'];
 	}
@@ -50,6 +49,9 @@ if ($_POST) {
 	}
 	if (isset($_POST['deleteAll'])) {
 		$deleteAll = intval($_POST['deleteAll']);
+	}
+	if (isset($_POST['idToDelete'])) {
+		$idToDelete = intval($_POST['idToDelete']);
 	}
 	
 	//perform insert based on post
@@ -72,7 +74,7 @@ if ($_POST) {
 	//perform delete all if that button was clicked
 	if (isset($deleteAll)) {
 		if ($deleteAll == 1) {
-				//prepare insert statement
+				//prepare delete statements
 			if (!($clearTable = $mysqli->prepare("drop table if exists vidstore"))) {
 				echo "Prepare failed on clearTable";
 			}
@@ -94,7 +96,21 @@ if ($_POST) {
 			if (!($resetTable->execute())) {
 				echo "Execute failed for resetTable";
 			}
-			
+		}
+	}
+	
+	if (isset($idToDelete)) {
+			//prepare deletion statement
+		if (!($delVid = $mysqli->prepare("DELETE FROM vidstore WHERE id=?"))) {
+			echo "Prepare failed on delVid";
+		}		
+			//bind id to be deleted
+		if (!$delVid->bind_param("i", $idToDelete)) {
+			echo "Binding failed on delVid";
+		}	
+			//execute deletion
+		if (!($delVid->execute())) {
+			echo "Execute failed on delVid";
 		}
 	}
 	
@@ -103,26 +119,26 @@ if ($_POST) {
 }
 
 //check for get parameters
-if ($_GET) {
-	//perform deletion
-	if (isset($_GET['idToDelete'])) {
-		$idToDelete = intval($_GET['idToDelete']);
-	}
-	
-	if (!($delVid = $mysqli->prepare("DELETE FROM vidstore WHERE id=?"))) {
-		echo "Prepare failed on delVid";
-	}
-	if (!$delVid->bind_param("i", $idToDelete)) {
-		echo "Binding failed on addVid";
-	}
-	if (!($delVid->execute())) {
-		echo "Execute failed on delVid";
-	}
-	$delVid->close();
-	
-	//redirect
-	//header("Location: " . $_SERVER['REQUEST_URI']);
-}
+//if ($_GET) {
+//	//perform deletion
+//	if (isset($_GET['idToDelete'])) {
+//		$idToDelete = intval($_GET['idToDelete']);
+//	}
+//	
+//	if (!($delVid = $mysqli->prepare("DELETE FROM vidstore WHERE id=?"))) {
+//		echo "Prepare failed on delVid";
+//	}
+//	if (!$delVid->bind_param("i", $idToDelete)) {
+//		echo "Binding failed on addVid";
+//	}
+//	if (!($delVid->execute())) {
+//		echo "Execute failed on delVid";
+//	}
+//	$delVid->close();
+//	
+//	//redirect
+//	//header("Location: " . $_SERVER['REQUEST_URI']);
+//}
 
 //general statement for getting all videos in db
 if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
@@ -150,7 +166,10 @@ while($row = $vidResult->fetch_assoc()) {
 	$row["category"], 
 	$row["length"], 
 	$row["rented"], 
-	"<a href='interface.php?idToDelete=".$row["id"]."'><input type='button' value='Delete' /></a>");
+	"<form action='interface.php' method='post'>
+		<input type='hidden' name='idToDelete' value='".$row['id']."'>
+		<input type='submit' value='Delete'>
+	</form>");
 }
 ?>
 	</tbody>
