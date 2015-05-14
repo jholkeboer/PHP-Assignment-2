@@ -1,10 +1,13 @@
+<?php
+include 'storedinfo.php';
+//header("Location: http://web.engr.oregonstate.edu/~holkeboj/PHP-Assignment-2/src/interface.php");
+?>
 <!doctype html>
 <head>
 </head>
 <body>
 <?php
-include 'storedinfo.php';
-header("Location: http://www.yourwebsite.com/user.php");
+
 //oregon state db
 
 $mysqli = new mysqli("oniddb.cws.oregonstate.edu","holkeboj-db",$holkebojpass,"holkeboj-db");
