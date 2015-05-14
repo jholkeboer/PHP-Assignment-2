@@ -4,9 +4,7 @@
 <body>
 <?php
 include 'storedinfo.php';
-header( 'Cache-Control: no-store, no-cache, must-revalidate' ); 
-header( 'Cache-Control: post-check=0, pre-check=0', false ); 
-header( 'Pragma: no-cache' ); 
+header("Location: http://www.yourwebsite.com/user.php");
 //oregon state db
 
 $mysqli = new mysqli("oniddb.cws.oregonstate.edu","holkeboj-db",$holkebojpass,"holkeboj-db");
@@ -30,10 +28,7 @@ if (!($catList->execute())) {
 	echo "Execute failed on catList";
 }
 $catResult = $catList->get_result();		//this will be used to populate drop-down
-
-?>
-
-<?php
+$catList->close();
 
 if ($_POST) {
 //check for post parameters
@@ -60,19 +55,16 @@ if ($_POST) {
 	}
 	if (isset($_POST['CategoryFilter'])) {
 		$CategoryFilter = (string)$_POST['CategoryFilter'];
-		echo "Filter set";
 	}
 	else {
 		$CategoryFilter = "";
 	}
 
-	if (isset($newName)) {
-		echo "newname set";
-	}
+
 	//perform insert based on post
 	if (isset($newName) && isset($newCategory) && isset($newLength)) {	
 			//prepare insert statement	
-		if (!($addVid = $mysqli->prepare("INSERT INTO vidstore (name, category, length) values (?,?,?)"))) {
+		if (!($addVid = $mysqli->prepare("INSERT INTO vidstore (name, category, length, rented) values (?,?,?,0)"))) {
 			echo "Prepare failed on addVid";
 		}
 			//bind parameters
@@ -81,7 +73,7 @@ if ($_POST) {
 		}
 			//execute
 		if (!($addVid->execute())) {
-			echo "Execute failed for addVid";
+			//echo "Execute failed for addVid";
 		}
 		$addVid->close();
 	}
@@ -164,16 +156,12 @@ if ($_POST) {
 		$returnVid->close();
 	}
 	
-	//redirect
-	header("Location: " . $_SERVER['REQUEST_URI']);
 }
 else {
 	$CategoryFilter = "";
 
 }
 
-echo "Category filter is ";
-echo $CategoryFilter;
 
 if ($CategoryFilter == "") {
 	//general statement for getting all videos in db
@@ -204,11 +192,11 @@ else {
 <h5>Use the form below to add a video to the database.</h5>
 <form action="interface.php" method="post">
 	<label>Name: </label>
-	<input type="text" name="name">
+	<input type="text" name="name" required>
 	<label>Category: </label>
-	<input type="text" name="category">
+	<input type="text" name="category" required>
 	<label>Length: </label>
-	<input type="text" name="length">
+	<input type="number" name="length" min="0" required>
 	<input type="submit" value="Add video">	
 </form><br>
 <form action="interface.php" method="post">
@@ -280,5 +268,6 @@ while($row = $vidResult->fetch_assoc()) {
 $getVids->close();
 
 $mysqli->close();
+
 ?>
 </body>
