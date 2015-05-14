@@ -58,12 +58,34 @@ if ($_POST) {
 		echo "Binding failed on addVid";
 	}
 		//execute
-	$addVid->execute();
+	if (!($addVid->execute())) {
+		echo "Execute failed for addVid";
+	}
 	$addVid->close();
 	
 	//redirect
 	header("Location: " . $_SERVER['REQUEST_URI']);
 }
+
+//check for get parameters
+if ($_GET) {
+	//perform deletion
+	if (isset($_GET['idToDelete'])) {
+		$idToDelete = intval($_GET['idToDelete']);
+	}
+	
+	if (!($delVid = $mysqli->prepare("DELETE FROM vidstore WHERE id=?"))) {
+		echo "Prepare failed on delVid";
+	}
+	if (!$delVid->bind_param("i", $idToDelete)) {
+		echo "Binding failed on addVid";
+	}
+	if (!($delVid->execute())) {
+		echo "Execute failed on delVid";
+	}
+	$delVid->close();
+}
+
 //general statement for getting all videos in db
 if (!($getVids = $mysqli->prepare("SELECT id, name, category, length, rented FROM vidstore ORDER BY name"))) {
 	echo "Prepare failed on getVids";	
@@ -85,7 +107,12 @@ $vidResult = $getVids->get_result();
 	<tbody>
 <?php
 while($row = $vidResult->fetch_assoc()) {
-	printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td></tr>", $row["name"], $row["category"], $row["length"], $row["rented"]);
+	printf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> <td>%s</td> </tr>", 
+	$row["name"], 
+	$row["category"], 
+	$row["length"], 
+	$row["rented"], 
+	"<a href='interface.php?idToDelete=".$row["id"]."'><input type='button' value='Delete' /></a>");
 }
 ?>
 	</tbody>
